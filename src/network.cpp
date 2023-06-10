@@ -33,6 +33,7 @@ extern std::string g_LoginViewPort;
 extern std::string g_LoginAuthPort;
 extern char* g_CharacterList;
 extern bool g_IsRunning;
+extern unsigned char g_AccountId[4];
 
 namespace xiloader
 {
@@ -329,6 +330,7 @@ namespace xiloader
         case 0x0001: // Success (Login)
             xiloader::console::output(xiloader::color::success, "Successfully logged in as %s!", g_Username.c_str());
             sock->AccountId = *(UINT32*)(recvBuffer + 0x01);
+            memcpy(g_AccountId, (UCHAR*)(recvBuffer + 0x01), 4);
             closesocket(sock->s);
             sock->s = INVALID_SOCKET;
             return true;

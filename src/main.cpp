@@ -45,6 +45,10 @@ std::string g_Password = ""; // The password being logged in with.
 char* g_CharacterList = NULL; // Pointer to the character list data being sent from the server.
 bool g_IsRunning = false; // Flag to determine if the network threads should hault.
 bool g_Hide = false; // Determines whether or not to hide the console window after FFXI starts.
+unsigned char g_AccountId[4] = { 0 }; // Used to match multiple reconnecting View sockets to their Data sockets from the same IP address.
+const int VIEW_VERSION_LENGTH = 0x98;
+const int VIEW_VERSION = 0x26;
+const int VIEW_VERSION_OFFSET = 0x08;
 
 /* Hairpin Fix Variables */
 DWORD g_NewServerAddress; // Hairpin server address to be overriden with.
@@ -168,6 +172,13 @@ int WINAPI Mine_send(SOCKET s, const char* buf, int len, int flags)
 {
     const auto ret = _ReturnAddress();
     std::ignore = ret;
+
+    /* send server provided account ID in the first View socket outbound packet */
+    if (len == VIEW_VERSION_LENGTH && buf[VIEW_VERSION_OFFSET] == VIEW_VERSION)
+    {
+        /* only reconnecting View socket connections will have a non-zero value */
+        memcpy((BYTE*)(buf + (VIEW_VERSION_LENGTH - 4)), g_AccountId, 4);
+    }
 
     // xiloader::console::output(xiloader::color::lightred, "send %i", len);
     return Real_send(s, buf, len, flags);
